@@ -6,11 +6,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/middleware")
-public class MiddlewareController {
+@RequestMapping("/auth")
+public class AuthController {
 
-    @GetMapping
-    public ResponseEntity<String> hello() {
-        return ResponseEntity.ok("vai corinthians");
+    @GetMapping("/login")
+    public ResponseEntity<String> login() {
+        return ResponseEntity.ok("login");
+    }
+
+    @GetMapping("/register")
+    public ResponseEntity<String> register() {
+        return ResponseEntity.ok("register");
     }
 }
