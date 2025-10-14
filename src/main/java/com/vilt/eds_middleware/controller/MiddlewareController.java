@@ -1,51 +1,35 @@
 package com.vilt.eds_middleware.controller;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import org.springframework.beans.factory.annotation.Value;
+import com.vilt.eds_middleware.dto.CreateUserRequest;
+import com.vilt.eds_middleware.service.MiddlewareService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/middleware")
 public class MiddlewareController {
 
-    private final WebClient serverClient;
+    private final MiddlewareService service;
 
-    public MiddlewareController(@Value("${eds.server.base-url}") String baseUrl) {
-        this.serverClient = WebClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+    public MiddlewareController(
+            MiddlewareService service
+    ) {
+        this.service = service;
     }
 
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(Map.of("middleware", "UP"));
+    @GetMapping(path = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> health() {
+        return ResponseEntity.ok(service.health());
     }
-
-    public record CreateUserRequest(@NotBlank String login, @NotBlank String password) {}
 
     @PostMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object createUserViaServer(@RequestBody @Valid CreateUserRequest req) {
-        return serverClient.post()
-                .uri("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .retrieve()
-                .bodyToMono(Object.class)
-                .block();
+    public ResponseEntity<?> createUserViaServer(@RequestBody CreateUserRequest req) {
+        return ResponseEntity.ok(service.createUser(req));
     }
 
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object listUsersViaServer() {
-        return serverClient.get()
-                .uri("/users")
-                .retrieve()
-                .bodyToMono(Object.class)
-                .block();
+    public ResponseEntity<?> listUsersViaServer() {
+        return ResponseEntity.ok(service.listUsers());
     }
 }
