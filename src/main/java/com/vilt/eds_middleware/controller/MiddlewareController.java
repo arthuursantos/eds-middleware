@@ -6,6 +6,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/middleware")
 public class MiddlewareController {
@@ -31,5 +33,15 @@ public class MiddlewareController {
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> listUsersViaServer() {
         return ResponseEntity.ok(service.listUsers());
+    }
+
+    @PostMapping(
+            path = "/login",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> login (@RequestBody com.vilt.eds_middleware.dto.LoginRequest req) {
+        Map<String, Object> tokens = service.login(req.username(), req.password());
+        return ResponseEntity.ok(tokens);
     }
 }

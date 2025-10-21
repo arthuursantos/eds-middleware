@@ -143,4 +143,72 @@ public class MiddlewareService {
                 .bodyToMono(Object.class)
                 .block();
     }
+
+    public Map<String, Object> login (String username, String password){
+        String tokenEndpoint = issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
+        tokenEndpoint = tokenEndpoint + "/protocol/openid-connect/token";
+
+        Map<String, String> formData = new LinkedHashMap<>();
+        formData.put("grant_type", "password");
+        formData.put(
+                "client_id",
+                System.getProperty("security.oauth2.client-id",
+                System.getenv().getOrDefault("SECURITY_OAUTH2_CLIENT_ID",
+                "eds-middleware")));
+
+        String clientSecret = System.getProperty(
+                "security.oauth2.client-secret",
+                System.getenv("SECURITY_OAUTH2_CLIENT_SECRET")
+        );
+
+        if (clientSecret != null && !clientSecret.isBlank()) {
+            formData.put("client_secret", clientSecret);
+        }
+
+        formData.put("username", username);
+        formData.put("password", password);
+        formData.put("scope", "openid profile email");
+
+        var tokenResponse = httpClient.post()
+                .uri(tokenEndpoint)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(formData.entrySet().stream()
+                        .map(e -> e.getKey() + "=" + urlEncode(e.getValue()))
+                        .reduce((a, b) -> a + "&" + b)
+                        .orElse(""))
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+        if (tokenResponse == null || !tokenResponse.containsKey("access_token")) {
+            throw new IllegalStateException("Token endpoint did not return an access_token");
+        }
+
+        Map<String, Object> payload = Map.of(
+                "login", username,
+                "password", password
+        );
+
+        try {
+            serverClient.post()
+                    .uri("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception ignored) { }
+
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.putAll(tokenResponse);
+        return out;
+    }
+
+    private String urlEncode (String v){
+        try {
+            return java.net.URLEncoder.encode(v, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return v;
+        }
+    }
 }
