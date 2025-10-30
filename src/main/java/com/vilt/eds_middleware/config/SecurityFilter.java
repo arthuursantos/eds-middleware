@@ -4,16 +4,22 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-import static com.vilt.eds_middleware.config.SecurityConfig.publicEndpoints;
-
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
+
+    public static final String[] noTokenEndpoints = {
+            "/middleware/user/login",
+            "/middleware/user/register",
+    };
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -24,6 +30,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+        log.info("Response status: {}", response.getStatus());
     }
 
     private String recoveryToken(HttpServletRequest request) {
@@ -36,7 +43,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private boolean checkEndpoint(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return Arrays.asList(publicEndpoints).contains(uri);
+        return Arrays.asList(noTokenEndpoints).contains(uri);
     }
 
 }
