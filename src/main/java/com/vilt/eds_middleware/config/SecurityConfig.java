@@ -45,7 +45,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://feat-spring-middleware--aem-edge-ue--arthuursantos.aem.page"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://main--aem-edge-ue--arthuursantos.aem.page"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
